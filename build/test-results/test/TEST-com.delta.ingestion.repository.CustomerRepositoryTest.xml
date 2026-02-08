@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.delta.ingestion.repository.CustomerRepositoryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-02-08T15:00:32" hostname="DESKTOP-APPD9KR" time="0.038">
+<testsuite name="com.delta.ingestion.repository.CustomerRepositoryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-02-08T15:56:56" hostname="DESKTOP-APPD9KR" time="0.106">
   <properties/>
-  <testcase name="shouldFindByExternalIdIn()" classname="com.delta.ingestion.repository.CustomerRepositoryTest" time="0.038"/>
-  <system-out><![CDATA[2026-02-08T20:30:31.259+05:30  INFO 1084 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.delta.ingestion.repository.CustomerRepositoryTest]: CustomerRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-02-08T20:30:31.324+05:30  INFO 1084 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.delta.ingestion.DeltaIngestionApplication for test class com.delta.ingestion.repository.CustomerRepositoryTest
+  <testcase name="shouldFindByExternalIdIn()" classname="com.delta.ingestion.repository.CustomerRepositoryTest" time="0.106"/>
+  <system-out><![CDATA[2026-02-08T21:26:53.424+05:30  INFO 12904 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.delta.ingestion.repository.CustomerRepositoryTest]: CustomerRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-02-08T21:26:53.672+05:30  INFO 12904 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.delta.ingestion.DeltaIngestionApplication for test class com.delta.ingestion.repository.CustomerRepositoryTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -13,24 +13,24 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.2)
 
-2026-02-08T20:30:31.413+05:30  INFO 1084 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : Starting CustomerRepositoryTest using Java 21.0.8 with PID 1084 (started by vijay in C:\Users\vijay\Documents\Assignment\delta-ingestion-service)
-2026-02-08T20:30:31.414+05:30  INFO 1084 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : No active profile set, falling back to 1 default profile: "default"
-2026-02-08T20:30:31.711+05:30  INFO 1084 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-02-08T20:30:31.741+05:30  INFO 1084 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 3 JPA repository interfaces.
-2026-02-08T20:30:31.914+05:30  INFO 1084 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
-2026-02-08T20:30:32.014+05:30  INFO 1084 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@26a5775f
-2026-02-08T20:30:32.014+05:30  INFO 1084 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
-2026-02-08T20:30:32.018+05:30  INFO 1084 --- [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/assignment_db (PostgreSQL 18.1)
-2026-02-08T20:30:32.022+05:30  WARN 1084 --- [    Test worker] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 18.1 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
-2026-02-08T20:30:32.046+05:30  INFO 1084 --- [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.017s)
-2026-02-08T20:30:32.146+05:30  INFO 1084 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 3
-2026-02-08T20:30:32.147+05:30  INFO 1084 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
-2026-02-08T20:30:32.192+05:30  INFO 1084 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-02-08T20:30:32.203+05:30  INFO 1084 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-02-08T20:30:32.230+05:30  INFO 1084 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-02-08T20:30:32.403+05:30  INFO 1084 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-02-08T20:30:32.436+05:30  INFO 1084 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-02-08T20:30:32.616+05:30  INFO 1084 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : Started CustomerRepositoryTest in 1.286 seconds (process running for 22.642)
+2026-02-08T21:26:53.883+05:30  INFO 12904 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : Starting CustomerRepositoryTest using Java 21.0.8 with PID 12904 (started by vijay in C:\Users\vijay\Documents\Assignment\delta-ingestion-service)
+2026-02-08T21:26:53.883+05:30  INFO 12904 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : No active profile set, falling back to 1 default profile: "default"
+2026-02-08T21:26:54.515+05:30  INFO 12904 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-02-08T21:26:54.565+05:30  INFO 12904 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 49 ms. Found 3 JPA repository interfaces.
+2026-02-08T21:26:54.958+05:30  INFO 12904 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-02-08T21:26:55.264+05:30  INFO 12904 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@b6db92b
+2026-02-08T21:26:55.264+05:30  INFO 12904 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-02-08T21:26:55.268+05:30  INFO 12904 --- [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/assignment_db (PostgreSQL 18.1)
+2026-02-08T21:26:55.273+05:30  WARN 12904 --- [    Test worker] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 18.1 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 16.
+2026-02-08T21:26:55.314+05:30  INFO 12904 --- [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.033s)
+2026-02-08T21:26:55.467+05:30  INFO 12904 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 3
+2026-02-08T21:26:55.468+05:30  INFO 12904 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-02-08T21:26:55.616+05:30  INFO 12904 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-02-08T21:26:55.649+05:30  INFO 12904 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-02-08T21:26:55.699+05:30  INFO 12904 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-02-08T21:26:55.931+05:30  INFO 12904 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-02-08T21:26:55.969+05:30  INFO 12904 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-02-08T21:26:56.660+05:30  INFO 12904 --- [    Test worker] c.d.i.repository.CustomerRepositoryTest  : Started CustomerRepositoryTest in 2.972 seconds (process running for 43.672)
 Hibernate: 
     select
         ce1_0.external_id 
