@@ -1,0 +1,33 @@
+{
+"info": {
+"name": "Delta Ingestion Service API",
+"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+"description": "API collection for Delta Ingestion Service"
+},
+"item": [
+{
+"name": "Ingest Customers",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "[\n  {\n    \"external_id\": \"cust_001\",\n    \"name\": \"Alice\",\n    \"email\": \"alice@example.com\",\n    \"country_code\": \"US\",\n    \"status_code\": \"ACTIVE\"\n  },\n  {\n    \"external_id\": \"cust_002\",\n    \"name\": \"Bob\",\n    \"email\": \"bob@example.com\",\n    \"country_code\": \"IN\",\n    \"status_code\": \"ACTIVE\"\n  }\n]"
+},
+"url": {
+"raw": "http://localhost:8080/customers/ingest",
+"protocol": "http",
+"host": ["localhost"],
+"port": "8080",
+"path": ["customers", "ingest"]
+}
+},
+"response": []
+}
+]
+}
