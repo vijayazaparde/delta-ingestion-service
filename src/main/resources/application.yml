@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/assignment_db
-    username: postgres
-    password: admin
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:assignment_db}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:admin}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -21,4 +21,4 @@ spring:
     locations: classpath:db/migration
 
 server:
-  port: 8080
+  port: ${PORT:8080}
