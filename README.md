@@ -54,7 +54,8 @@ This service is designed to model **real-world data ingestion pipelines** where 
    CREATE DATABASE assignment_db;
 
 3. Configure `application.yml`
-4. Run:
+4. run command: $env:SPRING_PROFILES_ACTIVE="local"
+5. Run:
    ./gradlew bootRun
 
 Flyway migrations will auto-run.
