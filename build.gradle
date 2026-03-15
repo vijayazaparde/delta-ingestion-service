@@ -2,10 +2,12 @@ plugins {
     id 'org.springframework.boot' version '3.2.2'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'java'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
-group = 'com.citta'
+group = 'com.delta'
 version = '0.0.1-SNAPSHOT'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -17,26 +19,68 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot
+    // Spring Boot Core
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // PostgreSQL
+    // Rate Limiting (Bucket4j + Redis via Redisson)
+    implementation 'com.bucket4j:bucket4j-core:8.10.1'
+    implementation 'com.bucket4j:bucket4j-jcache:8.10.1'
+    implementation 'javax.cache:cache-api:1.1.1'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.23.1'
+
+    // Database: Production & Migrations
     implementation 'org.postgresql:postgresql:42.7.3'
     implementation 'org.flywaydb:flyway-core:10.10.0'
     implementation 'org.flywaydb:flyway-database-postgresql:10.10.0'
 
-    // Lombok
+    // Performance Metrics (Micrometer + Prometheus)
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // JSON Performance (Jackson Streaming API)
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+
+    // Utilities
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    // Validation
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-    // Testing
+    // Testing Support
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Testcontainers: Essential for testing 10M record logic against real Postgres
+    testImplementation("org.testcontainers:testcontainers:1.20.4")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.4")
+    testImplementation("org.testcontainers:postgresql:1.20.4")
+    testImplementation("com.h2database:h2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.mockito:mockito-core:5.5.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.5.0")
+    testImplementation("org.assertj:assertj-core:3.24.2")
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    environment "DOCKER_HOST", "npipe:////./pipe/docker_engine"
+
+    // This helps if there is an API version mismatch
+    environment "TESTCONTAINERS_DOCKER_CLIENT_STRATEGY", "org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy"environment "DOCKER_HOST", "npipe:////./pipe/docker_engine"
+
+    // This helps if there is an API version mismatch
+    environment "TESTCONTAINERS_DOCKER_CLIENT_STRATEGY", "org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy"
+
+    // High-performance test tuning
+    maxHeapSize = "1024m"
+
+    // Ensures the 'test' profile is active during Gradle test execution
+    systemProperty 'spring.profiles.active', 'test'
 }

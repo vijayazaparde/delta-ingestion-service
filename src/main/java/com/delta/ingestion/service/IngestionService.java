@@ -2,85 +2,164 @@ package com.delta.ingestion.service;
 
 import com.delta.ingestion.dto.IncomingCustomerDTO;
 import com.delta.ingestion.dto.IngestResponseDTO;
-import com.delta.ingestion.entity.CountryEntity;
-import com.delta.ingestion.entity.CustomerEntity;
-import com.delta.ingestion.entity.CustomerStatusEntity;
-import com.delta.ingestion.repository.CountryRepository;
-import com.delta.ingestion.repository.CustomerRepository;
-import com.delta.ingestion.repository.CustomerStatusRepository;
+import com.delta.ingestion.entity.ProcessedRequest;
+import com.delta.ingestion.exception.DatabaseException;
+import com.delta.ingestion.exception.InvalidPayloadException;
+import com.delta.ingestion.repository.ProcessedRequestRepository;
+import com.delta.ingestion.repository.StagingRepository;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import io.micrometer.core.instrument.Counter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class IngestionService {
 
-    private final CustomerRepository customerRepo;
-    private final CountryRepository countryRepo;
-    private final CustomerStatusRepository statusRepo;
+    private final IngestionManager ingestionManager;
+    private final StagingRepository stagingRepository;
+    private final ProcessedRequestRepository processedRequestRepository;
+    private final ObjectMapper objectMapper;
 
-    public IngestionService(CustomerRepository customerRepo,
-                            CountryRepository countryRepo,
-                            CustomerStatusRepository statusRepo) {
-        this.customerRepo = customerRepo;
-        this.countryRepo = countryRepo;
-        this.statusRepo = statusRepo;
-    }
+    private final Counter ingestionRecordsCounter;
+    private final Counter ingestionFailureCounter;
 
-    @Transactional
-    public IngestResponseDTO ingest(List<IncomingCustomerDTO> incoming) {
-        int received = incoming.size();
-        int failed = 0;
+    private static final int BATCH_SIZE = 1000;
 
-        // 1. Extract external IDs
-        Set<String> externalIds = incoming.stream()
-                .map(IncomingCustomerDTO::getExternal_id)
-                .collect(Collectors.toSet());
+    public IngestResponseDTO ingest(String requestId, InputStream is, boolean dryRun) {
 
-        // 2. Fetch existing IDs (duplicates)
-        Set<String> existing = customerRepo.findByExternalIdIn(externalIds);
+        long startTime = System.currentTimeMillis();
 
-        // 3. Delta = new customers only
-        List<IncomingCustomerDTO> delta = incoming.stream()
-                .filter(c -> !existing.contains(c.getExternal_id()))
-                .toList();
+        ingestionManager.preparePartition(LocalDate.now());
 
-        List<CustomerEntity> toInsert = new ArrayList<>();
-
-        // 4. Map DTO → Entity
-        for (IncomingCustomerDTO dto : delta) {
-            try {
-                CountryEntity country = countryRepo.findByCodeIgnoreCase(dto.getCountry_code())
-                        .orElseThrow(() -> new RuntimeException("Invalid country code: " + dto.getCountry_code()));
-
-                CustomerStatusEntity status = statusRepo.findByCodeIgnoreCase(dto.getStatus_code())
-                        .orElseThrow(() -> new RuntimeException("Invalid status code: " + dto.getStatus_code()));
-
-                CustomerEntity c = new CustomerEntity();
-                c.setExternalId(dto.getExternal_id());
-                c.setName(dto.getName());
-                c.setEmail(dto.getEmail());
-                c.setCountry(country);
-                c.setStatus(status);
-
-                toInsert.add(c);
-
-            } catch (Exception e) {
-                failed++;
-            }
+        try {
+            ingestionManager.createPendingLock(requestId);
+        } catch (DatabaseException e) {
+            log.warn("Duplicate request detected for ID: {}", requestId);
+            return handleDuplicateRequest(requestId);
         }
 
-        // 5. Save
-        customerRepo.saveAll(toInsert);
+        int totalReceived = 0;
+        int invalidRecords = 0;
 
-        // 6. Response
-        return new IngestResponseDTO(
-                received,                     // total received
-                toInsert.size(),               // inserted
-                received - toInsert.size() - failed, // skipped (duplicates)
-                failed                         // failed
-        );
+        OffsetDateTime requestCreatedAt = OffsetDateTime.now();
+
+        List<IncomingCustomerDTO> batch = new ArrayList<>(BATCH_SIZE);
+
+        try (JsonParser parser = objectMapper.getFactory().createParser(is)) {
+
+            if (parser.nextToken() != JsonToken.START_ARRAY) {
+                throw new InvalidPayloadException("Payload must be a JSON array");
+            }
+
+            ObjectReader reader = objectMapper.readerFor(IncomingCustomerDTO.class);
+
+            while (parser.nextToken() != JsonToken.END_ARRAY) {
+
+                if (parser.currentToken() == JsonToken.START_OBJECT) {
+
+                    IncomingCustomerDTO customer = reader.readValue(parser);
+                    totalReceived++;
+
+                    String extId = customer.getExternalId();
+
+                    if (extId == null || extId.isBlank()) {
+                        invalidRecords++;
+                        continue;
+                    }
+
+                    customer.setExternalId(extId.trim());
+                    batch.add(customer);
+
+                    if (batch.size() >= BATCH_SIZE) {
+
+                        stagingRepository.copyInsert(
+                                requestId,
+                                requestCreatedAt,
+                                batch
+                        );
+
+                        batch.clear();
+                    }
+                }
+            }
+
+            if (!batch.isEmpty()) {
+                stagingRepository.copyInsert(
+                        requestId,
+                        requestCreatedAt,
+                        batch
+                );
+            }
+
+            ingestionRecordsCounter.increment(totalReceived);
+
+            ProcessedRequest pr = ingestionManager.finalizeIngestion(
+                    requestId,
+                    totalReceived,
+                    dryRun,
+                    0,
+                    invalidRecords
+            );
+
+            long duration = System.currentTimeMillis() - startTime;
+
+            return mapToDTO(pr, duration);
+
+        } catch (JsonProcessingException e) {
+
+            ingestionFailureCounter.increment();
+            ingestionManager.rollbackLock(requestId);
+
+            throw new InvalidPayloadException("Malformed JSON: " + e.getMessage());
+
+        } catch (Exception e) {
+
+            ingestionFailureCounter.increment();
+            ingestionManager.rollbackLock(requestId);
+
+            log.error("Ingestion failed for request {}", requestId, e);
+
+            throw new DatabaseException("Failed to process ingestion", e);
+        }
+    }
+
+    private IngestResponseDTO handleDuplicateRequest(String requestId) {
+
+        return processedRequestRepository.findByRequestId(requestId)
+                .map(pr -> mapToDTO(pr, 0))
+                .orElseThrow(() ->
+                        new DatabaseException(
+                                "Ingestion for request " + requestId + " is currently in progress."
+                        ));
+    }
+
+    private IngestResponseDTO mapToDTO(ProcessedRequest pr, long durationMs) {
+
+        double hitRatio = pr.getReceived() == 0
+                ? 0.0
+                : (double) pr.getSkipped() / pr.getReceived();
+
+        return IngestResponseDTO.builder()
+                .received(pr.getReceived())
+                .inserted(pr.getInserted())
+                .skippedExisting(pr.getSkipped())
+                .failed(pr.getFailed())
+                .timeTaken(durationMs + "ms")
+                .rowsScanned(pr.getReceived())
+                .cacheHitRatio(Math.round(hitRatio * 100.0) / 100.0)
+                .build();
     }
 }

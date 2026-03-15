@@ -1,47 +1,78 @@
 package com.delta.ingestion.service;
 
-import com.delta.ingestion.dto.IncomingCustomerDTO;
+import com.delta.ingestion.BaseIntegrationTest;
 import com.delta.ingestion.dto.IngestResponseDTO;
-import com.delta.ingestion.repository.CustomerRepository;
-
+import com.delta.ingestion.repository.ProcessedRequestRepository;
+import com.delta.ingestion.repository.StagingRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
-import org.springframework.transaction.annotation.Transactional;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-@SpringBootTest
-@Transactional
-public class IngestionServiceTest {
+class IngestionServiceTest extends BaseIntegrationTest {
 
     @Autowired
     private IngestionService ingestionService;
-
     @Autowired
-    private CustomerRepository customerRepo;
+    private StagingRepository stagingRepository;
+    @Autowired
+    private IngestionManager ingestionManager;
+    @Autowired
+    private  ProcessedRequestRepository processedRequestRepository;
+    @Autowired
+    private  ObjectMapper objectMapper;
 
     @Test
-    void shouldInsertOnlyDelta() {
+    void shouldProcessRealStreamingIngestion() {
+        // Arrange: Real JSON matching your DTO (ensure snake_case is handled in DTO)
+        String requestId = "REQ_REAL_123";
+        String json = """
+            [
+                {
+                    "external_id": "C-101",
+                    "name": "Vijay",
+                    "email": "vijay@test.com",
+                    "country_code": "IN",
+                    "status_code": "ACTIVE"
+                },
+                {
+                    "external_id": "C-102",
+                    "name": "Gemini",
+                    "email": "gemini@test.com",
+                    "country_code": "US",
+                    "status_code": "ACTIVE"
+                }
+            ]
+            """;
+        InputStream inputStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
-        List<IncomingCustomerDTO> batch = List.of(
-                new IncomingCustomerDTO("cust_1","A","a@test.com","US","ACTIVE"),
-                new IncomingCustomerDTO("cust_2","B","b@test.com","IN","ACTIVE")
-        );
+        // Act: Calling the actual service method
+        IngestResponseDTO response = ingestionService.ingest(requestId, inputStream, false);
 
-        IngestResponseDTO response1 = ingestionService.ingest(batch);
+        // Assert: Verify the response matches what the DB actually processed
+        assertThat(response).isNotNull();
+        assertThat(response.getReceived()).isEqualTo(2);
+        assertThat(response.getInserted()).isEqualTo(2);
+        assertThat(response.getFailed()).isEqualTo(0);
+    }
 
-        assertEquals(2, response1.getInserted());
-        assertEquals(0, response1.getSkipped());
+    @Test
+    void shouldHandleIdempotency() {
+        String requestId = "REQ_DUPE_999";
+        String json = "[{\"external_id\": \"C-200\", \"name\": \"User\"}]";
 
-        // Re-run same batch (idempotency check)
-        IngestResponseDTO response2 = ingestionService.ingest(batch);
+        // First call
+        ingestionService.ingest(requestId, new ByteArrayInputStream(json.getBytes()), false);
 
-        assertEquals(0, response2.getInserted());
-        assertEquals(2, response2.getSkipped());
+        // Second call with same RequestId
+        IngestResponseDTO secondResponse = ingestionService.ingest(requestId,
+                new ByteArrayInputStream(json.getBytes()), false);
+
+        // Should return existing result instead of reprocessing
+        assertThat(secondResponse.getReceived()).isEqualTo(1);
     }
 }

@@ -1,0 +1,2 @@
+INSERT INTO countries (code, name) VALUES ('IN', 'India'), ('US', 'United States') ON CONFLICT DO NOTHING;
+INSERT INTO customer_status (code, description) VALUES ('ACTIVE', 'Active') ON CONFLICT DO NOTHING;

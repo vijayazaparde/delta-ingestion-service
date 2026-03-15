@@ -1,7 +1,9 @@
 INSERT INTO countries(code, name) VALUES
 ('US', 'United States'),
-('IN', 'India');
+('IN', 'India')
+ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO customer_status(code, name) VALUES
 ('ACTIVE', 'Active'),
-('INACTIVE', 'Inactive');
+('INACTIVE', 'Inactive')
+ON CONFLICT (code) DO NOTHING;
