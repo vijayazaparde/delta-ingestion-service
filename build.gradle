@@ -48,7 +48,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     // Testing Support
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
