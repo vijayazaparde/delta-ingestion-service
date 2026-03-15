@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,16 +19,18 @@ class StagingRepositoryTest extends BaseIntegrationTest {
     @Test
     void shouldHandleSpecialCharsInCopy() {
         String reqId = "test-req-1";
+        OffsetDateTime now = OffsetDateTime.now(); // Create the timestamp for partitioning
+
         List<IncomingCustomerDTO> batch = List.of(
                 IncomingCustomerDTO.builder()
                         .externalId("EXT1")
-                        .name("John\tDoe\nLineBreak") // Contains Tab and Newline
+                        .name("John\tDoe\nLineBreak")
                         .email("test@delta.com")
                         .build()
         );
 
-        // Act
-        stagingRepository.copyInsert(reqId, batch);
+        // Act: Pass 'now' as the second argument
+        stagingRepository.copyInsert(reqId, now, batch);
 
         // Assert
         String savedName = jdbcTemplate.queryForObject(

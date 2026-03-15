@@ -1,6 +1,5 @@
 spring:
   datasource:
-    # FIXED: Property name is reWriteBatchedStatements
     url: jdbc:postgresql://localhost:5432/assignment_db?reWriteBatchedStatements=true
     username: postgres
     password: admin
@@ -9,7 +8,21 @@ spring:
     hikari:
       maximum-pool-size: 50
       minimum-idle: 10
-      # Recommended for large pools to prevent application hangs
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+
+
+server:
+  port: 8080
+
+redisson:
+  config: |
+    singleServerConfig:
+      address: "redis://127.0.0.1:6379"
+      connectionMinimumIdleSize: 5
+      connectionPoolSize: 10
+
+logging:
+  level:
+    com.delta.ingestion: DEBUG

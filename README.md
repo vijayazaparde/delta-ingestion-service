@@ -182,7 +182,7 @@ WHERE c.external_id IS NULL AND s.request_id = :reqId
 
 ## 🧪 Running Tests
 
-Run all 13 validation scenarios (Stress, Idempotency, Logic):
+Run all validation scenarios (Stress, Idempotency, Logic):
 
 ```bash
 ./gradlew test
